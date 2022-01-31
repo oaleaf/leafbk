@@ -1,5 +1,7 @@
 /target
 /.idea
 
+/media
+
 private.pem
 public.pub
