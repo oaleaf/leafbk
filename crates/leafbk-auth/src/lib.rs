@@ -4,7 +4,7 @@ use rocket::http::Status;
 use rocket::outcome::IntoOutcome;
 use rocket::request::FromRequest;
 use rocket::serde::{Deserialize, Serialize};
-use rocket::{request, Build, FromForm, Request, Rocket, State};
+use rocket::{request, Build, Request, Rocket, State};
 use std::borrow::Cow;
 
 #[derive(Debug)]

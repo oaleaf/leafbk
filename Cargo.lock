@@ -624,12 +624,10 @@ name = "leafbk-media"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jsonwebtoken",
  "leafbk-auth",
  "leafbk-db",
  "md5",
  "rocket",
- "rust-argon2",
  "tree_magic_mini",
 ]
 

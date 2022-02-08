@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate rocket;
-extern crate argon2;
 
 use leafbk_auth::ApiKey;
 use leafbk_db::{redis, RedisClient};
@@ -119,10 +118,16 @@ async fn access_media_file(
 ) -> Option<KnownContentTypeFile> {
     let p = file_root.root.join(hash);
 
-    NamedFile::open(&p).await.ok().map(|file| {
-        let content_type = tree_magic_mini::from_filepath(&p);
-        KnownContentTypeFile { file, content_type }
-    })
+    match NamedFile::open(&p).await {
+        Ok(file) => {
+            let content_type =
+                tokio::task::spawn_blocking(move || tree_magic_mini::from_filepath(&p))
+                    .await
+                    .unwrap();
+            Some(KnownContentTypeFile { file, content_type })
+        }
+        Err(_) => None,
+    }
 }
 
 #[get("/auth")]
