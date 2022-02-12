@@ -2,6 +2,7 @@ use leafbk_auth::ApiKey;
 use rocket::fairing::AdHoc;
 use rocket::figment::providers::{Env, Format, Serialized, Toml};
 use rocket::figment::Figment;
+use rocket::request::FromParam;
 use rocket::response::content::Html;
 use rocket::response::stream::{Event, EventStream};
 use rocket::serde::{Deserialize, Serialize};
@@ -50,8 +51,27 @@ impl Files {
     }
 }
 
+struct FileName<'a>(&'a str);
+
+#[derive(Debug)]
+struct InvalidFileName;
+
+impl<'a> FromParam<'a> for FileName<'a> {
+    type Error = InvalidFileName;
+
+    fn from_param(param: &'a str) -> Result<Self, Self::Error> {
+        if param.contains(|c: char| !c.is_ascii_alphanumeric() && c != '_') {
+            Err(InvalidFileName)
+        } else {
+            Ok(FileName(param))
+        }
+    }
+}
+
 #[get("/<name>")]
-async fn editor(name: &str, files: &State<Arc<Mutex<Files>>>) -> Html<String> {
+async fn editor(name: FileName<'_>, files: &State<Arc<Mutex<Files>>>) -> Html<String> {
+    let name = name.0;
+
     let html = {
         let mut lock = files.lock().await;
         let file = lock.get_or_insert(name);
@@ -142,10 +162,12 @@ async fn editor(name: &str, files: &State<Arc<Mutex<Files>>>) -> Html<String> {
 
 #[get("/<name>/events")]
 async fn subscribe_events(
-    name: &str,
+    name: FileName<'_>,
     files: &State<Arc<Mutex<Files>>>,
     mut end: Shutdown,
 ) -> EventStream![] {
+    let name = name.0;
+
     let mut rx = files
         .lock()
         .await
@@ -170,17 +192,19 @@ async fn subscribe_events(
 }
 
 #[get("/<name>/content")]
-async fn get_content(name: &str, files: &State<Arc<Mutex<Files>>>) -> String {
-    files.lock().await.get_or_insert(name).content.clone()
+async fn get_content(name: FileName<'_>, files: &State<Arc<Mutex<Files>>>) -> String {
+    files.lock().await.get_or_insert(name.0).content.clone()
 }
 
 #[put("/<name>/content", data = "<content>")]
 async fn update_content(
     _k: ApiKey<'_>,
-    name: &str,
+    name: FileName<'_>,
     content: String,
     files: &State<Arc<Mutex<Files>>>,
 ) {
+    let name = name.0;
+
     let mut files = files.lock().await;
     let file = files.get_or_insert(name);
 
