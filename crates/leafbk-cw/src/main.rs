@@ -68,6 +68,28 @@ impl<'a> FromParam<'a> for FileName<'a> {
     }
 }
 
+#[inline]
+pub fn escape_html(input: &str) -> String {
+    let mut output = String::with_capacity(input.len() * 2);
+    for c in input.chars() {
+        match c {
+            '&' => output.push_str("&amp;"),
+            '<' => output.push_str("&lt;"),
+            '>' => output.push_str("&gt;"),
+            '"' => output.push_str("&quot;"),
+            '\'' => output.push_str("&#x27;"),
+            '/' => output.push_str("&#x2F;"),
+            // Additional one for old IE (unpatched IE8 and below)
+            // See https://github.com/OWASP/owasp-java-encoder/wiki/Grave-Accent-Issue
+            '`' => output.push_str("&#96;"),
+            _ => output.push(c),
+        }
+    }
+
+    // Not using shrink_to_fit() on purpose
+    output
+}
+
 #[get("/<name>")]
 async fn editor(name: FileName<'_>, files: &State<Arc<Mutex<Files>>>) -> Html<String> {
     let name = name.0;
@@ -76,6 +98,7 @@ async fn editor(name: FileName<'_>, files: &State<Arc<Mutex<Files>>>) -> Html<St
         let mut lock = files.lock().await;
         let file = lock.get_or_insert(name);
         let content = &file.content;
+        let content = escape_html(content);
 
         format!(
             // language=html
