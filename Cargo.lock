@@ -609,7 +609,17 @@ dependencies = [
  "leafbk-db",
  "rocket",
  "rust-argon2",
+ "thiserror",
  "url",
+]
+
+[[package]]
+name = "leafbk-cw"
+version = "0.1.0"
+dependencies = [
+ "leafbk-auth",
+ "leafbk-db",
+ "rocket",
 ]
 
 [[package]]

@@ -33,3 +33,51 @@ macro_rules! redis_key {
         format!("leafbk:{}", $v)
     };
 }
+
+#[macro_export]
+macro_rules! get {
+    ($conn:expr, $k:literal, $r:ty) => {
+        <$crate::redis::aio::Connection as $crate::redis::AsyncCommands>::get::<_, $r>($conn, $crate::redis_key!($k))
+    };
+    ($conn:expr, $k:expr, $r:ty) => {
+        <$crate::redis::aio::Connection as $crate::redis::AsyncCommands>::get::<_, $r>($conn, $crate::redis_key!($k))
+    };
+
+    ($conn:expr, $k:literal, $r:ty, @await) => {
+        $crate::get!($conn, $k, $r).await
+    };
+    ($conn:expr, $k:expr, $r:ty, @await) => {
+        $crate::get!($conn, $k, $r).await
+    };
+
+    ($conn:expr, $k:literal, $r:ty, @unwrap) => {
+        $crate::get!($conn, $k, $r, @await).unwrap()
+    };
+    ($conn:expr, $k:expr, $r:ty, @unwrap) => {
+        $crate::get!($conn, $k, $r, @await).unwrap()
+    };
+}
+
+#[macro_export]
+macro_rules! set {
+    ($conn:expr, $k:literal, $v:expr, $r:ty) => {
+        <$crate::redis::aio::Connection as $crate::redis::AsyncCommands>::set::<_, _, $r>($conn, $crate::redis_key!($k), $v)
+    };
+    ($conn:expr, $k:expr, $v:expr, $r:ty) => {
+        <$crate::redis::aio::Connection as $crate::redis::AsyncCommands>::set::<_, _, $r>($conn, $crate::redis_key!($k), $v)
+    };
+
+    ($conn:expr, $k:literal, $v:expr, $r:ty, @await) => {
+        $crate::set!($conn, $k, $v, $r).await
+    };
+    ($conn:expr, $k:expr, $v:expr, $r:ty, @await) => {
+        $crate::set!($conn, $k, $v, $r).await
+    };
+
+    ($conn:expr, $k:literal, $v:expr, $r:ty, @unwrap) => {
+        $crate::set!($conn, $k, $v, $r, @await).unwrap()
+    };
+    ($conn:expr, $k:expr, $v:expr, $r:ty, @unwrap) => {
+        $crate::set!($conn, $k, $v, $r, @await).unwrap()
+    };
+}

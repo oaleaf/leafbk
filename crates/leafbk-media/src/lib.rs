@@ -98,7 +98,6 @@ struct KnownContentTypeFile {
     content_type: Option<&'static str>,
 }
 
-#[rocket::async_trait]
 impl<'r, 'o: 'r> Responder<'r, 'o> for KnownContentTypeFile {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'o> {
         self.file.respond_to(request).map(|mut response| {
@@ -118,16 +117,13 @@ async fn access_media_file(
 ) -> Option<KnownContentTypeFile> {
     let p = file_root.root.join(hash);
 
-    match NamedFile::open(&p).await {
-        Ok(file) => {
-            let content_type =
-                tokio::task::spawn_blocking(move || tree_magic_mini::from_filepath(&p))
-                    .await
-                    .unwrap();
-            Some(KnownContentTypeFile { file, content_type })
-        }
-        Err(_) => None,
-    }
+    let file = NamedFile::open(&p).await.ok()?;
+
+    let content_type = tokio::task::spawn_blocking(move || tree_magic_mini::from_filepath(&p))
+        .await
+        .unwrap();
+
+    Some(KnownContentTypeFile { file, content_type })
 }
 
 #[get("/auth")]

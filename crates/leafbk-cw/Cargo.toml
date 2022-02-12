@@ -1,5 +1,5 @@
 [package]
-name = "leafbk-auth"
+name = "leafbk-cw"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,12 +7,5 @@ edition = "2021"
 
 [dependencies]
 rocket = { version = "0.5.0-rc.1", features = ["json"] }
-jsonwebtoken = "8.0.0-beta.8"
-chrono = "0.4.19"
-
-rust-argon2 = "1.0.0"
-
 leafbk-db = { path = "../leafbk-db" }
-url = "2.2.2"
-
-thiserror = "1.0.30"
+leafbk-auth = { path = "../leafbk-auth" }
